@@ -103,12 +103,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
     : 0;
 
   const streak = useMemo(() => {
-    let s = 0;
-    for (const d of plan) {
-      if (state.log[d.day] === "done" || d.focus === "Rest") s += state.log[d.day] === "done" ? 1 : 0;
-      else if (state.log[d.day] === "skipped") s = 0;
-    }
-    // longest trailing run of completed sessions
+    // longest run of consecutive completed sessions this week
     let run = 0;
     let best = 0;
     for (const d of scheduledDays) {
