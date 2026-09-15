@@ -188,18 +188,17 @@ function scaleExercise(ex: Exercise, tier: number): Exercise {
 }
 
 export function generatePlan(profile: Profile, tier: number): DayPlan[] {
-  const split = [...GOAL_SPLIT[profile.goal]];
+  const split: Focus[] = [...GOAL_SPLIT[profile.goal]];
   const bias = PREF_BIAS[profile.preferred];
   if (bias) {
     // Bias one mid-week slot toward the preferred workout type.
     split[3] = bias;
-    if (split[1] !== bias && profile.preferred !== "mixed") split[4] = split[4];
   }
 
   const base = profile.dailyMinutes;
 
-  return DAYS.map((day, i) => {
-    const focus = split[i];
+  return DAYS.map((day, i): DayPlan => {
+    const focus: Focus = split[i] ?? "Full Body";
     if (focus === "Rest") {
       return {
         day,
@@ -217,12 +216,12 @@ export function generatePlan(profile: Profile, tier: number): DayPlan[] {
     const weight =
       focus === "Strength" || focus === "Full Body" ? 1 : focus === "Yoga & Mobility" ? 0.75 : 0.85;
     const minutes = clamp(
-      Math.round(((base * weight + (tier - 3) * 3) / 5)) * 5,
+      Math.round((base * weight + (tier - 3) * 3) / 5) * 5,
       15,
       75,
     );
 
-    const pool = LIB[focus] ?? LIB["Full Body"];
+    const pool: Exercise[] = LIB[focus] ?? LIB["Full Body"] ?? [];
     const count = clamp(Math.round(minutes / 10), 3, pool.length);
 
     return {
@@ -230,11 +229,12 @@ export function generatePlan(profile: Profile, tier: number): DayPlan[] {
       focus,
       minutes,
       intensity: intensityFor(tier),
-      exercises: pool.slice(0, count).map((ex) => scaleExercise(ex, tier)),
+      exercises: pool.slice(0, count).map((ex: Exercise) => scaleExercise(ex, tier)),
       note: `${TIER_NAMES[tier - 1]} tier · ${GOAL_LABELS[profile.goal]} emphasis`,
     };
   });
 }
+
 
 export function weeklyMinutes(plan: DayPlan[]) {
   return plan.reduce((s, d) => s + d.minutes, 0);
